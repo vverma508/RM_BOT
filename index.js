@@ -4,6 +4,7 @@ var request= require('request');
 var promise = require('bluebird');
 var each=require('sync-each');
 var args= require('./args')
+var configs = require('./config')
 const express = require('express')
 const bodyParser = require('body-parser')
 var path = require('path');
@@ -24,8 +25,16 @@ app.get('/', function(request, response) {
   response.header("Content-Type","text/html")
   response.send(text)
 })
+var testVariable;
 
+app.post('/webhook/twitter', function(req,res){
+  console.log(res);
+  testVariable=res;
+})
 
+app.get('/test', function(){
+  response.send(JSON.stringify(testVariable));
+})
 var T = new Twit(args.config)
 
   var resArray=[];
