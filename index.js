@@ -10,6 +10,9 @@ const bodyParser = require('body-parser')
 var path = require('path');
 var security= require('./helpers/security.js')
 const passport = require('passport')
+const queryString = require('query-string')
+const TwitterStrategy = require('passport-twitter')
+const httpAuth = require('http-auth')
 
 const app = express()
 app.set('port', (process.env.PORT || 8080))
@@ -20,6 +23,35 @@ app.use(bodyParser.urlencoded({ extended: true }))
 const server = app.listen(app.get('port'), function() {
   console.log('Node app is running on port', app.get('port'))
 })
+
+
+// Configure the Twitter strategy for use by Passport.
+passport.use(new TwitterStrategy({
+  consumerKey: args.config.consumer_key,
+  consumerSecret: args.config.consumer_secret,
+  // we want force login, so we set the URL with the force_login=true
+  userAuthorizationURL: 'https://api.twitter.com/oauth/authenticate?force_login=true'
+},
+// stores profile and tokens in the sesion user object
+// this may not be the best solution for your application
+function(token, tokenSecret, profile, cb) {
+  return cb(null, {
+    profile: profile,
+    access_token: token,
+    access_token_secret: tokenSecret
+  })
+}
+))
+
+// Configure Passport authenticated session persistence.
+passport.serializeUser(function(user, cb) {
+cb(null, user);
+})
+
+passport.deserializeUser(function(obj, cb) {
+cb(null, obj);
+})
+
 app.get('/callbacks/:action', passport.authenticate('twitter', { failureRedirect: '/' }),
   require('./helpers/sub-callbacks'))
 
