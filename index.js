@@ -9,6 +9,7 @@ const express = require('express')
 const bodyParser = require('body-parser')
 var path = require('path');
 var security= require('./helpers/security.js')
+const passport = require('passport')
 
 const app = express()
 app.set('port', (process.env.PORT || 8080))
@@ -19,8 +20,12 @@ app.use(bodyParser.urlencoded({ extended: true }))
 const server = app.listen(app.get('port'), function() {
   console.log('Node app is running on port', app.get('port'))
 })
+app.get('/callbacks/:action', passport.authenticate('twitter', { failureRedirect: '/' }),
+  require('./helpers/sub-callbacks'))
 
-
+app.get('/subscriptions/add', passport.authenticate('twitter', {
+  callbackURL: '/callbacks/addsub'
+}));
 
 /**
  * Receives challenge response check (CRC)
