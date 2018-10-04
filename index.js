@@ -8,6 +8,7 @@ var configs = require('./config')
 const express = require('express')
 const bodyParser = require('body-parser')
 var path = require('path');
+var security= require('./helpers/security.js')
 
 const app = express()
 app.set('port', (process.env.PORT || 8080))
@@ -18,6 +19,115 @@ app.use(bodyParser.urlencoded({ extended: true }))
 const server = app.listen(app.get('port'), function() {
   console.log('Node app is running on port', app.get('port'))
 })
+
+
+
+/**
+ * Receives challenge response check (CRC)
+ **/
+app.get('/webhook/twitter', function(request, response) {
+
+  var crc_token = request.query.crc_token
+  console.log("CRC request from twitter");
+  console.log(request.query);
+  if (crc_token) {
+    var hash = security.get_challenge_response(crc_token, args.config.consumer_secret)
+
+    response.status(200);
+    response.send({
+      response_token: 'sha256=' + hash
+    })
+  } else {
+    response.status(400);
+    response.send('Error: crc_token missing from request.')
+  }
+})
+
+
+/**
+ * Receives Account Acitivity events
+ **/
+app.post('/webhook/twitter', function(request, response) {
+
+  console.log(request.body)
+  response.send('200 OK')
+})
+
+
+var webhook = {}
+
+
+/**
+ * Retrieves existing webhook config and renders
+ */
+webhook.get_config = function (req, resp) {
+  // construct request to retrieve webhook config
+  var request_options = {
+    url: 'https://api.twitter.com/1.1/account_activity/all/' +configs.env + '/webhooks.json',
+    oauth: args.config
+  }
+
+  request.get(request_options)
+
+  // success
+  .then(function (body) {
+    var json_response = {
+      configs: JSON.parse(body),
+      csrf_token: req.csrfToken(),
+      update_webhook_url: 'https://' + req.headers.host + '/webhook/twitter'
+    }
+
+    if (json_response.configs.length) {
+      json_response.update_webhook_url = json_response.configs[0].url
+    }
+
+    console.log(json_response)
+    resp.render('webhook', json_response)
+  })
+
+  // failure
+  .catch(function (body) {
+    if (body) {
+      console.log(body)
+    }
+    var json_response = {
+      title: 'Error',
+      message: 'Webhook config unable to be retrieved',
+      button: {
+        title: 'Ok',
+        url: '/webhook'
+      }
+    }
+
+    resp.status(500);
+    resp.render('status', json_response)
+  })
+}
+
+app.get('/webhook',webhook.get_config)
+
+
+var createWebhookConfig=function(){
+// request option
+var request_options = {
+  url: 'https://api.twitter.com/1.1/account_activity/all/' + configs.env + '/webhooks.json',
+  oauth: args.config,
+  headers: {
+    'Content-type': 'application/x-www-form-urlencoded'
+  },
+  form: {
+    url: 'https://rm-bot3.herokuapp.com/webhook/twitter'
+  }
+}
+
+// POST request to create webhook config
+request.post(request_options).then(function (body) {
+  console.log(body)
+}).catch(function (body) {
+  console.log(body)
+})
+}
+app.get('/createWebhookConfig',createWebhookConfig)
 
 app.get('/', function(request, response) {
   var text= fs.readFileSync('./index.html','utf8');
@@ -56,8 +166,6 @@ var T = new Twit(args.config)
      })
 })
   }
-
-  
 
   var getSentiment = function(data,curr,length){
     var allCompleted=false;
@@ -108,21 +216,3 @@ var T = new Twit(args.config)
        });
     }    
   }
-
-  // stream.on('follow', function (eventMsg) {
-  //   var tweet="Hi @"+eventMsg.source.screen_name +"tweet @RMNBot3 with any #tag to know public response on that topic"
-  //   T.post('statuses/update', { status:tweet }, function(err, data, response) {
-  //     console.log(data)
-  //     });
-
-  //    tweet="@"+eventMsg.source.screen_name +" sample : @RMNBot3 #NASA"
-  //    T.post('statuses/update', { status:tweet }, function(err, data, response) {
-  //     console.log(data)
-  //     });
-  // })
-
-  // stream.on('tweet', function(eventMsg){
-  //   console.log(eventMsg);
-  //   var text= eventMsg.text.substring(9);
-  //   findTweetResult(text);
-  // })
