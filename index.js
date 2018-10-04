@@ -1,6 +1,6 @@
 var Twit = require('twit')
 var fs= require('fs')
-var request= require('request');
+var request= require('request-promise');
 var promise = require('bluebird');
 var each=require('sync-each');
 var args= require('./args')
