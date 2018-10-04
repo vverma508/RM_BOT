@@ -107,7 +107,7 @@ webhook.get_config = function (req, resp) {
 app.get('/webhook',webhook.get_config)
 
 
-var createWebhookConfig=function(){
+var createWebhookConfig=function(req,res){
 // request option
 var request_options = {
   url: 'https://api.twitter.com/1.1/account_activity/all/' + configs.env + '/webhooks.json',
@@ -123,6 +123,7 @@ var request_options = {
 // POST request to create webhook config
 request.post(request_options).then(function (body) {
   console.log(body)
+  res.send(body);
 }).catch(function (body) {
   console.log(body)
 })
