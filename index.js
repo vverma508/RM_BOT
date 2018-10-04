@@ -142,6 +142,7 @@ app.post('/webhook/twitter', function(req,res){
   console.log("enevnt from twitter")
   console.log(res);
   testVariable=res;
+  response.send('200 OK')
 })
 
 app.get('/test', function(){
