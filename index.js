@@ -30,7 +30,8 @@ passport.use(new TwitterStrategy({
   consumerKey: args.config.consumer_key,
   consumerSecret: args.config.consumer_secret,
   // we want force login, so we set the URL with the force_login=true
-  userAuthorizationURL: 'https://api.twitter.com/oauth/authenticate?force_login=true'
+  userAuthorizationURL: 'https://api.twitter.com/oauth/authenticate?force_login=true',
+  callbackURL: "https://rm-bot3.herokuapp.com/callbacks/addsub"
 },
 // stores profile and tokens in the sesion user object
 // this may not be the best solution for your application
