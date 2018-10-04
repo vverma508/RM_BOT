@@ -110,7 +110,7 @@ app.get('/webhook',webhook.get_config)
 var createWebhookConfig=function(req,res){
 // request option
 var request_options = {
-  url: 'https://api.twitter.com/1.1/account_activity/all/' + configs.env + '/webhooks.json',
+  url: 'https://api.twitter.com/1.1/account_activity/all/' + configs.env + '/subscriptions.json',
   oauth: args.config,
   headers: {
     'Content-type': 'application/x-www-form-urlencoded'
