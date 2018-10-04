@@ -73,7 +73,7 @@ webhook.get_config = function (req, resp) {
   .then(function (body) {
     var json_response = {
       configs: JSON.parse(body),
-      csrf_token: req.csrfToken(),
+      //csrf_token: req.csrfToken(),
       update_webhook_url: 'https://' + req.headers.host + '/webhook/twitter'
     }
 
@@ -139,6 +139,7 @@ app.get('/', function(request, response) {
 var testVariable;
 
 app.post('/webhook/twitter', function(req,res){
+  console.log("enevnt from twitter")
   console.log(res);
   testVariable=res;
 })
