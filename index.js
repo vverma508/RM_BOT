@@ -81,6 +81,11 @@ app.get('/webhook/twitter', function(request, response) {
   }
 })
 
+app.get("/dev/wenhook/twitter", function(request,response){
+  console.log(request);
+  response.status(200);
+  response.send('OK');
+})
 
 /**
  * Receives Account Acitivity events
