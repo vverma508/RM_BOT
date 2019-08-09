@@ -1,8 +1,8 @@
- var config={
-        consumer_key:         'cn09Z33oe8EKGObV17f2XoeHO',
-        consumer_secret:      'QyD4MaQ9ElX5bslieB7aJ07GkIDtI0tpgxMhHsHjtRr5JqO8nF',
-        access_token:         '1042697863250116609-tJ0lf4auirJHC4VvmaIgKlqvaBi6Wf',
-        access_token_secret:  'Snbr4kKse7xDMqzQIbgW4cfoeewbsdraf73gZ3RAsJpgD',
+var config={
+        consumer_key:         'FNW2UkiGWujdm2j2j1ub6vNAg',
+        consumer_secret:      '9DMlHCEFZeYaf4fPQESiurPjeIaLKzboj31oD3mbt7rLblz0Rh',
+        access_token:         '1042697863250116609-6XJMwiADo2x8gusi9cVQBjFI3N6zsT',
+        access_token_secret:  'AorHWxwg4cpIs755rcFwARkadkybpc63mbRrHvIgcGHzC',
 }
 
 module.exports={
