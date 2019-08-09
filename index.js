@@ -153,16 +153,12 @@ app.get('/webhook',webhook.get_config)
 var createWebhookConfig=function(req,res){
 // request option
 var request_options = {
-  url: 'https://api.twitter.com/1.1/account_activity/all/' + configs.env + '/subscriptions.json',
+  url: 'https://api.twitter.com/1.1/account_activity/all/'+configs.env +'/webhooks.json?url=https%3A%2F%2Fsi-dev-rmbot.azurewebsites.net%2Fwebhook%2Ftwitter',
   oauth: args.config,
   headers: {
     'Content-type': 'application/x-www-form-urlencoded'
-  },
-  form: {
-    url: 'https://rm-bot3.herokuapp.com/webhook/twitter'
   }
 }
-
 // POST request to create webhook config
 request.post(request_options).then(function (body) {
   console.log(body)
