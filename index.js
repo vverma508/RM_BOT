@@ -15,6 +15,7 @@ const TwitterStrategy = require('passport-twitter')
 const httpAuth = require('http-auth')
 var OAuthSignatureHelper= require("./helpers/OAuthSignatureHelper.js")
 var OAuth = require('oauth');
+var twitter=require('./twitter.js');
 
 const app = express()
 app.set('port', (process.env.PORT || 8080))
@@ -26,41 +27,6 @@ const server = app.listen(app.get('port'), function() {
   console.log('Node app is running on port', app.get('port'))
 })
 
-
-// Configure the Twitter strategy for use by Passport.
-passport.use(new TwitterStrategy({
-  consumerKey: args.config.consumer_key,
-  consumerSecret: args.config.consumer_secret,
-  // we want force login, so we set the URL with the force_login=true
-  userAuthorizationURL: 'https://api.twitter.com/oauth/authenticate?force_login=true',
-  callbackURL: "https://si-dev-rmbot.azurewebsites.net/callbacks/addsub"
-},
-// stores profile and tokens in the sesion user object
-// this may not be the best solution for your application
-function(token, tokenSecret, profile, cb) {
-  return cb(null, {
-    profile: profile,
-    access_token: token,
-    access_token_secret: tokenSecret
-  })
-}
-))
-
-// Configure Passport authenticated session persistence.
-passport.serializeUser(function(user, cb) {
-cb(null, user);
-})
-
-passport.deserializeUser(function(obj, cb) {
-cb(null, obj);
-})
-
-app.get('/callbacks/:action', passport.authenticate('twitter', { failureRedirect: '/' }),
-  require('./helpers/sub-callbacks'))
-
-app.get('/subscriptions/add', passport.authenticate('twitter', {
-  callbackURL: '/callbacks/addsub'
-}));
 
 /**
  * Receives challenge response check (CRC)
@@ -83,23 +49,6 @@ app.get('/webhook/twitter', function(request, response) {
   }
 })
 
-app.get("/dev/webhook/twitter", function(request,response){
- 
-  var crc_token = request.query.crc_token
-  console.log("CRC request from twitter");
-  console.log(request.query);
-  if (crc_token) {
-    var hash = security.get_challenge_response(crc_token, args.config.consumer_secret)
-
-    response.status(200);
-    response.send({
-      response_token: 'sha256=' + hash
-    })
-  } else {
-    response.status(400);
-    response.send('Error: crc_token missing from request.')
-  }
-})
 
 /**
  * Receives Account Acitivity events
@@ -163,110 +112,12 @@ webhook.get_config = function (req, resp) {
 
 app.get('/webhook',webhook.get_config)
 
-app.get('/addSubscription', function(req,res){
-
-  var reqParam={
-    "url":"https%3A%2F%2Fsi-dev-rmbot.azurewebsites.net%2Fwebhook%2Ftwitter"
-  }
-  var baseUrl='https://api.twitter.com/1.1/account_activity/all/'+configs.env +'/subscriptions.json'
-
-  var OAuthObj=OAuthSignatureHelper.AuthenticationObject;
-  OAuthObj.oauth_signature= OAuthSignatureHelper.getOAuthSignature(reqParam,baseUrl,'POST');
-
-  var request_options = {
-    url: baseUrl+'?url=https%3A%2F%2Fsi-dev-rmbot.azurewebsites.net%2Fwebhook%2Ftwitter',
-    oauth:OAuthObj
-  }
-    // POST request to create webhook config
-  request.post(request_options).then(function (body) {
-    console.log(body)
-    res.send(body);
-  }).catch(function (body) {
-    console.log(body)
-    res.end();
-  })
-})
 
 
-app.get('/testTweet', function(req,response){
 
-  var twitter_application_consumer_key = args.config.consumer_key;  // API Key
-  var twitter_application_secret = args.config.consumer_secret;  // API Secret
-  var twitter_user_access_token = args.config.access_token;  // Access Token
-  var twitter_user_secret = args.config.access_token_secret;  // Access Token Secret
-  
-  var oauth = new OAuth.OAuth(
-    'https://api.twitter.com/oauth/request_token',
-    'https://api.twitter.com/oauth/access_token',
-    twitter_application_consumer_key,
-    twitter_application_secret,
-    '1.0A',
-    null,
-    'HMAC-SHA1'
-  );
-  var status = 'test tweet';  // This is the tweet (ie status)
+app.get('/tweet', twitter.tweet)
 
-  var postBody = {
-    'status': status
-  };
-  
-  oauth.post('https://api.twitter.com/1.1/statuses/update.json',
-    twitter_user_access_token,  // oauth_token (user access token)
-      twitter_user_secret,  // oauth_secret (user secret)
-      postBody,  // post body
-      '',  // post content type ?
-    function(err, data, res) {
-      if (err) {
-        console.log(err);
-        response.end()
-      } else {
-         console.log(data);
-         response.send(data);
-      }
-    });
-
-//   var reqParam={
-//     "status":"this is test tweet"
-//   }
-//   var baseUrl='https://api.twitter.com/1.1/statuses/update.json'
-
-//   var OAuthObj=OAuthSignatureHelper.AuthenticationObject;
-//   OAuthObj.oauth_signature= OAuthSignatureHelper.getOAuthSignature(reqParam,baseUrl,'POST');
-//  var auth='authorization: OAuth oauth_consumer_key="'+OAuthObj.oauth_consumer_key+'", oauth_nonce="'+OAuthObj.oauth_nonce+'", oauth_signature="'+OAuthObj.oauth_signature+'", oauth_signature_method="HMAC-SHA1", oauth_timestamp="'+OAuthObj.oauth_timestamp+'", oauth_token="'+OAuthObj.oauth_token+'", oauth_version="1.0"'
-//  console.log(auth); 
-//  var request_options = {
-//     url: baseUrl+'?status=this is test tweet',
-//     oauth:OAuthObj
-//   }
-//     // POST request to create webhook config
-//   request.post(request_options).then(function (body) {
-//     console.log(body)
-//     res.send(body);
-//   }).catch(function (body) {
-//     console.log(body)
-//     res.end();
-//   })
-})
-
-
-var createWebhookConfig=function(req,res){
-// request option
-var request_options = {
-  url: 'https://api.twitter.com/1.1/account_activity/all/'+configs.env +'/webhooks.json?url=https%3A%2F%2Fsi-dev-rmbot.azurewebsites.net%2Fwebhook%2Ftwitter',
-  oauth: args.config,
-  headers: {
-    'Content-type': 'application/x-www-form-urlencoded'
-  }
-}
-// POST request to create webhook config
-request.post(request_options).then(function (body) {
-  console.log(body)
-  res.send(body);
-}).catch(function (body) {
-  console.log(body)
-})
-}
-app.get('/createWebhookConfig',createWebhookConfig)
+app.get('/search', twitter.searchTweets)
 
 app.get('/', function(request, response) {
   var text= fs.readFileSync('./index.html','utf8');
@@ -282,28 +133,6 @@ app.post('/webhook/twitter', function(req,res){
   testVariable=res;
   res.send('200 OK')
 })
-
-var T = new Twit(args.config)
-
-  var resArray=[];
- //var stream= T.stream('user');
-  
-  var findTweetResult= function(text){
-    T.get('search/tweets', { q: text+' since:2018-09-01', count:100}, function(err, data, response) {
-      var finalResult={};
-      finalResult.pos=0;
-      finalResult.neg=0;
-      finalResult.neutral=0;
-     var dataSrting= JSON.stringify(data);
-     fs.writeFile("./data.json",dataSrting); 
-     
-     data.statuses.forEach(function(current,index,arr){
-        getSentiment(current,index,arr.length).then(function(calback){
-         calback();
-        });
-     })
-})
-  }
 
   var getSentiment = function(data,curr,length){
     var allCompleted=false;
@@ -349,8 +178,8 @@ var T = new Twit(args.config)
       
       var tweet= "#tag have " +pos + "+ve, "+neg+"-ve, "+neutral+"netral tweets this month"
 
-      T.post('statuses/update', { status:tweet }, function(err, data, response) {
-             console.log(data)
-       });
+      // T.post('statuses/update', { status:tweet }, function(err, data, response) {
+      //        console.log(data)
+      //  });
     }    
   }
