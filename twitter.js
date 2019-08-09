@@ -40,7 +40,7 @@ exports.tweet= function(req,response){
 
   exports.searchTweets = function(request,response){
     var postBody = {
-      'query': request.query.value,
+      'query':"@:"+request.query.value,
       'maxResults':'500'
     };
     oauth.post('https://api.twitter.com/1.1/tweets/search/30day/dev.json',
