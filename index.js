@@ -14,6 +14,7 @@ const queryString = require('query-string')
 const TwitterStrategy = require('passport-twitter')
 const httpAuth = require('http-auth')
 var OAuthSignatureHelper= require("./helpers/OAuthSignatureHelper.js")
+var OAuth = require('oauth');
 
 const app = express()
 app.set('port', (process.env.PORT || 8080))
@@ -187,29 +188,64 @@ app.get('/addSubscription', function(req,res){
 })
 
 
-app.get('/testTweet', function(req,res){
+app.get('/testTweet', function(req,response){
 
-  var reqParam={
-    "status":"this is test tweet"
-  }
-  var baseUrl='https://api.twitter.com/1.1/statuses/update.json'
+  var twitter_application_consumer_key = args.config.consumer_key;  // API Key
+  var twitter_application_secret = args.config.consumer_secret;  // API Secret
+  var twitter_user_access_token = args.config.access_token;  // Access Token
+  var twitter_user_secret = args.config.access_token_secret;  // Access Token Secret
+  
+  var oauth = new OAuth.OAuth(
+    'https://api.twitter.com/oauth/request_token',
+    'https://api.twitter.com/oauth/access_token',
+    twitter_application_consumer_key,
+    twitter_application_secret,
+    '1.0A',
+    null,
+    'HMAC-SHA1'
+  );
+  var status = 'test tweet';  // This is the tweet (ie status)
 
-  var OAuthObj=OAuthSignatureHelper.AuthenticationObject;
-  OAuthObj.oauth_signature= OAuthSignatureHelper.getOAuthSignature(reqParam,baseUrl,'POST');
- var auth='authorization: OAuth oauth_consumer_key="'+OAuthObj.oauth_consumer_key+'", oauth_nonce="'+OAuthObj.oauth_nonce+'", oauth_signature="'+OAuthObj.oauth_signature+'", oauth_signature_method="HMAC-SHA1", oauth_timestamp="'+OAuthObj.oauth_timestamp+'", oauth_token="'+OAuthObj.oauth_token+'", oauth_version="1.0"'
- console.log(auth); 
- var request_options = {
-    url: baseUrl+'?status=this is test tweet',
-    oauth:OAuthObj
-  }
-    // POST request to create webhook config
-  request.post(request_options).then(function (body) {
-    console.log(body)
-    res.send(body);
-  }).catch(function (body) {
-    console.log(body)
-    res.end();
-  })
+  var postBody = {
+    'status': status
+  };
+  
+  oauth.post('https://api.twitter.com/1.1/statuses/update.json',
+    twitter_user_access_token,  // oauth_token (user access token)
+      twitter_user_secret,  // oauth_secret (user secret)
+      postBody,  // post body
+      '',  // post content type ?
+    function(err, data, res) {
+      if (err) {
+        console.log(err);
+        response.end()
+      } else {
+         console.log(data);
+         response.send(data);
+      }
+    });
+
+//   var reqParam={
+//     "status":"this is test tweet"
+//   }
+//   var baseUrl='https://api.twitter.com/1.1/statuses/update.json'
+
+//   var OAuthObj=OAuthSignatureHelper.AuthenticationObject;
+//   OAuthObj.oauth_signature= OAuthSignatureHelper.getOAuthSignature(reqParam,baseUrl,'POST');
+//  var auth='authorization: OAuth oauth_consumer_key="'+OAuthObj.oauth_consumer_key+'", oauth_nonce="'+OAuthObj.oauth_nonce+'", oauth_signature="'+OAuthObj.oauth_signature+'", oauth_signature_method="HMAC-SHA1", oauth_timestamp="'+OAuthObj.oauth_timestamp+'", oauth_token="'+OAuthObj.oauth_token+'", oauth_version="1.0"'
+//  console.log(auth); 
+//  var request_options = {
+//     url: baseUrl+'?status=this is test tweet',
+//     oauth:OAuthObj
+//   }
+//     // POST request to create webhook config
+//   request.post(request_options).then(function (body) {
+//     console.log(body)
+//     res.send(body);
+//   }).catch(function (body) {
+//     console.log(body)
+//     res.end();
+//   })
 })
 
 
