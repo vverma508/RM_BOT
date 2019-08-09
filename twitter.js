@@ -47,7 +47,7 @@ exports.tweet= function(req,response){
       twitter_user_access_token,  // oauth_token (user access token)
         twitter_user_secret,  // oauth_secret (user secret)
         postBody,  // post body
-        '',  // post content type ?
+        'application/json',  // post content type ?
       function(err, data, res) {
         if (err) {
           console.log(err);
