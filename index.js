@@ -13,6 +13,7 @@ const passport = require('passport')
 const queryString = require('query-string')
 const TwitterStrategy = require('passport-twitter')
 const httpAuth = require('http-auth')
+var OAuthSignatureHelper= require("./helpers/OAuthSignatureHelper.js")
 
 const app = express()
 app.set('port', (process.env.PORT || 8080))
@@ -161,6 +162,53 @@ webhook.get_config = function (req, resp) {
 
 app.get('/webhook',webhook.get_config)
 
+app.get('/addSubscription', function(req,res){
+
+  var reqParam={
+    "url":"https%3A%2F%2Fsi-dev-rmbot.azurewebsites.net%2Fwebhook%2Ftwitter"
+  }
+  var baseUrl='https://api.twitter.com/1.1/account_activity/all/'+configs.env +'/subscriptions.json'
+
+  var OAuthObj=OAuthSignatureHelper.AuthenticationObject;
+  OAuthObj.oauth_signature= OAuthSignatureHelper.getOAuthSignature(reqParam,baseUrl,'POST');
+
+  var request_options = {
+    url: baseUrl+'?url=https%3A%2F%2Fsi-dev-rmbot.azurewebsites.net%2Fwebhook%2Ftwitter',
+    oauth:OAuthObj
+  }
+    // POST request to create webhook config
+  request.post(request_options).then(function (body) {
+    console.log(body)
+    res.send(body);
+  }).catch(function (body) {
+    console.log(body)
+  })
+})
+
+
+app.get('/testTweet', function(req,res){
+
+  var reqParam={
+    "status":"this is test tweet"
+  }
+  var baseUrl='https://api.twitter.com/1.1/statuses/update.json'
+
+  var OAuthObj=OAuthSignatureHelper.AuthenticationObject;
+  OAuthObj.oauth_signature= OAuthSignatureHelper.getOAuthSignature(reqParam,baseUrl,'POST');
+
+  var request_options = {
+    url: baseUrl+'?status=this is test tweet',
+    oauth:OAuthObj
+  }
+    // POST request to create webhook config
+  request.post(request_options).then(function (body) {
+    console.log(body)
+    res.send(body);
+  }).catch(function (body) {
+    console.log(body)
+  })
+})
+
 
 var createWebhookConfig=function(req,res){
 // request option
@@ -196,9 +244,6 @@ app.post('/webhook/twitter', function(req,res){
   res.send('200 OK')
 })
 
-app.get('/test', function(){
-  response.send(JSON.stringify(testVariable));
-})
 var T = new Twit(args.config)
 
   var resArray=[];
