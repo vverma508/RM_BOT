@@ -31,7 +31,7 @@ passport.use(new TwitterStrategy({
   consumerSecret: args.config.consumer_secret,
   // we want force login, so we set the URL with the force_login=true
   userAuthorizationURL: 'https://api.twitter.com/oauth/authenticate?force_login=true',
-  callbackURL: "https://rm-bot3.herokuapp.com/callbacks/addsub"
+  callbackURL: "https://si-dev-rmbot.azurewebsites.net/callbacks/addsub"
 },
 // stores profile and tokens in the sesion user object
 // this may not be the best solution for your application
@@ -81,10 +81,22 @@ app.get('/webhook/twitter', function(request, response) {
   }
 })
 
-app.get("/dev/wenhook/twitter", function(request,response){
-  console.log(request);
-  response.status(200);
-  response.send('OK');
+app.get("/dev/webhook/twitter", function(request,response){
+ 
+  var crc_token = request.query.crc_token
+  console.log("CRC request from twitter");
+  console.log(request.query);
+  if (crc_token) {
+    var hash = security.get_challenge_response(crc_token, args.config.consumer_secret)
+
+    response.status(200);
+    response.send({
+      response_token: 'sha256=' + hash
+    })
+  } else {
+    response.status(400);
+    response.send('Error: crc_token missing from request.')
+  }
 })
 
 /**
