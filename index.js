@@ -182,6 +182,7 @@ app.get('/addSubscription', function(req,res){
     res.send(body);
   }).catch(function (body) {
     console.log(body)
+    res.end();
   })
 })
 
@@ -199,7 +200,7 @@ app.get('/testTweet', function(req,res){
  console.log(auth); 
  var request_options = {
     url: baseUrl+'?status=this is test tweet',
-    header:auth
+    oauth:OAuthObj
   }
     // POST request to create webhook config
   request.post(request_options).then(function (body) {
@@ -207,6 +208,7 @@ app.get('/testTweet', function(req,res){
     res.send(body);
   }).catch(function (body) {
     console.log(body)
+    res.end();
   })
 })
 
