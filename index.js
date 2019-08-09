@@ -125,7 +125,7 @@ webhook.get_config = function (req, resp) {
     }
 
     console.log(json_response)
-    resp.render('webhook', json_response)
+    resp.send(json_response)
   })
 
   // failure
@@ -143,7 +143,7 @@ webhook.get_config = function (req, resp) {
     }
 
     resp.status(500);
-    resp.render('status', json_response)
+    resp.send(json_response)
   })
 }
 
