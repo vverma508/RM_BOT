@@ -27,3 +27,20 @@ var siningKey = config.consumer_secret + "&" + config.access_token_secret;
 return HmacHelper.GetOAuthSignature(siningKey, messages.join('&'));
 
 }
+
+function MergeObjects(obj1, obj2) {
+    var mergedObj = {};
+
+    for (var prop in obj1) {
+        if (obj1.hasOwnProperty(prop)) {
+            mergedObj[prop] = obj1[prop];
+        }
+    }
+    for (var prop in obj2) {
+        if (obj2.hasOwnProperty(prop)) {
+            mergedObj[prop] = obj2[prop];
+        }
+    }
+
+    return mergedObj;
+}
