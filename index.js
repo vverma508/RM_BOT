@@ -195,10 +195,11 @@ app.get('/testTweet', function(req,res){
 
   var OAuthObj=OAuthSignatureHelper.AuthenticationObject;
   OAuthObj.oauth_signature= OAuthSignatureHelper.getOAuthSignature(reqParam,baseUrl,'POST');
-
-  var request_options = {
+ var auth='authorization: OAuth oauth_consumer_key="'+OAuthObj.oauth_consumer_key+'", oauth_nonce="'+OAuthObj.oauth_nonce+'", oauth_signature="'+OAuthObj.oauth_signature+'", oauth_signature_method="HMAC-SHA1", oauth_timestamp="'+OAuthObj.oauth_timestamp+'", oauth_token="'+OAuthObj.oauth_token+'", oauth_version="1.0"'
+ console.log(auth); 
+ var request_options = {
     url: baseUrl+'?status=this is test tweet',
-    oauth:OAuthObj
+    header:auth
   }
     // POST request to create webhook config
   request.post(request_options).then(function (body) {
