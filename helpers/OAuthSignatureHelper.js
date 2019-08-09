@@ -20,7 +20,7 @@ exports.getOAuthSignature =function(params,baseUrl,httpType){
 var messages = [];
 messages.push(httpType);
 messages.push(percentageEncoder.EncodeString(baseUrl));
-messages.push(percentageEncoder.EncodeString(percentageEncoder.EncodeObj(MergeObjects(params, oAuth))));
+messages.push(percentageEncoder.EncodeString(percentageEncoder.EncodeObj(MergeObjects(params, config))));
 
 var siningKey = config.consumer_secret + "&" + config.access_token_secret;
 
